@@ -1,3 +1,6 @@
+// [重要提醒] 請務必確認您的編輯器 (如 VS Code) 是以 UTF-8 編碼儲存此檔案！
+// 如果以 Windows 預設的 ANSI 或 Big5 儲存，上傳到 GitHub 會變成亂碼。
+
 import React, { useState, useEffect } from 'react';
 import { Search, Menu, ShoppingCart, ChevronLeft, ChevronRight, MapPin, Phone, Truck, Clock } from 'lucide-react';
 
@@ -87,16 +90,16 @@ const App = () => {
     // 確保只在客戶端執行
     if (typeof window === 'undefined') return;
 
-    // 1. 生成頂部老店封面大圖 (完全對標您截圖的「鐵鍋滷汁滿滿茶葉蛋」)
-    generateImage("A close-up, ultra-realistic photograph of a traditional Taiwanese tea egg pot (茶葉蛋). Many whole eggs with deeply cracked, dark brown shells are simmering in a dark, rich soy sauce and tea broth. Spices like star anise are visible in the dark liquid. Authentic Taiwan street food, rustic, dark and moody lighting.")
+    // 1. 生成頂部老店封面大圖 (要求未剝殼、深褐色蜘蛛網裂紋)
+    generateImage("Ultra-realistic photography of traditional Taiwanese braised tea eggs in a rustic iron pot. The eggs are WHOLE and UNPEELED, with deeply cracked, dark brown shells stained by dark soy sauce and tea broth. Authentic, rustic street food style.")
       .then(res => setHeroImg({ loading: false, src: res?.error ? null : res, error: !!res?.error }));
     
-    // 2. 生成大圓盤單顆特寫圖 (要求在碗裡的滷汁茶葉蛋)
-    generateImage("A macro, photorealistic shot of two traditional Taiwanese tea eggs (茶葉蛋) in a small ceramic bowl filled with dark brown marinating broth. The eggs are WHOLE with their shells on. The shells are dark brown with prominent, intricate spiderweb cracks stained by the broth. Authentic, rustic Taiwanese street food style.")
+    // 2. 生成大圓盤單顆特寫圖 (要求帶殼、真實大理石裂紋)
+    generateImage("Macro photography of one whole, UNPEELED Taiwanese tea egg on a plate. The egg shell is completely intact but covered in deep, dark spiderweb cracks from being boiled in soy sauce and tea. Dark brown color, authentic rustic look.")
       .then(res => setProd1Img({ loading: false, src: res?.error ? null : res, error: !!res?.error }));
     
-    // 3. 生成商品卡片的堆疊茶葉蛋圖 (要求多顆帶殼)
-    generateImage("Photorealistic image of a pile of authentic Taiwanese tea eggs (茶葉蛋). The eggs are whole, unpeeled, and have dark brown, heavily cracked shells stained with tea and soy sauce. They look deeply marinated. Warm lighting, rustic local food aesthetic.")
+    // 3. 生成商品卡片的堆疊茶葉蛋圖 (要求多顆、真實色澤)
+    generateImage("A pile of whole, UNPEELED Taiwanese tea eggs with deeply cracked, dark brown shells. Authentic street food style, showing the rich dark soy sauce stains on the cracked shells. Warm lighting.")
       .then(res => setProd2Img({ loading: false, src: res?.error ? null : res, error: !!res?.error }));
   }, []);
 
