@@ -1,368 +1,105 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>五告滷 - 三十年老店</title>
-  
-  <!-- 載入 React 核心庫 -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
-  <!-- 載入 Babel 即時編譯器 (讓瀏覽器看懂 JSX) -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-  <!-- 載入 Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  
-  <style>
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    .animate-fade-in { animation: fadeIn 1.5s ease-in-out; }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>五告滷 | 真正入味的台式滷味</title>
+    <style>
+        :root {
+            --primary-color: #4a2512;
+            --accent-color: #e65c00;
+            --bg-color: #fbf5eb;
+            --text-color: #333;
+        }
+        body {
+            margin: 0; font-family: 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+            background-color: var(--bg-color); color: var(--text-color);
+        }
+        header {
+            background-color: var(--primary-color); color: white;
+            padding: 15px 20px; display: flex; justify-content: space-between;
+            align-items: center; position: sticky; top: 0; z-index: 100;
+        }
+        .logo { font-size: 24px; font-weight: bold; letter-spacing: 2px; }
+        .cart { background: var(--accent-color); padding: 5px 15px; border-radius: 20px; cursor: pointer; }
+        .hero {
+            text-align: center; padding: 60px 20px; background-color: #e3d2bc;
+            background-image: linear-gradient(180deg, #e3d2bc 0%, #fbf5eb 100%);
+        }
+        .hero h1 { font-size: 36px; color: var(--primary-color); margin-bottom: 10px; }
+        .hero p { font-size: 18px; color: #666; }
+        .products { padding: 40px 20px; max-width: 900px; margin: 0 auto; }
+        .products h2 { text-align: center; color: var(--primary-color); margin-bottom: 30px; }
+        .grid { display: flex; gap: 20px; justify-content: center; flex-wrap: wrap; }
+        .card {
+            background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            width: 100%; max-width: 320px; overflow: hidden; transition: transform 0.2s;
+        }
+        .card:hover { transform: translateY(-5px); }
+        .img-box { height: 200px; display: flex; align-items: center; justify-content: center; font-size: 60px; }
+        .egg { background: linear-gradient(135deg, #a0522d, #8b4513); }
+        .beef { background: linear-gradient(135deg, #5c2a16, #3e1c0e); }
+        .info { padding: 20px; }
+        .title { font-size: 20px; font-weight: bold; margin-bottom: 10px; }
+        .desc { font-size: 14px; color: #666; line-height: 1.6; margin-bottom: 15px; height: 65px;}
+        .price { font-size: 22px; color: var(--accent-color); font-weight: bold; margin-bottom: 15px; }
+        .btn {
+            display: block; width: 100%; padding: 12px; background: var(--accent-color);
+            color: white; border: none; border-radius: 6px; font-size: 16px;
+            cursor: pointer; transition: background 0.2s; text-align: center;
+        }
+        .btn:hover { background: #cc5200; }
+        footer { text-align: center; padding: 20px; background: var(--primary-color); color: #aaa; margin-top: 40px; }
+    </style>
 </head>
 <body>
-  <!-- 網頁內容會渲染在這裡 -->
-  <div id="root"></div>
 
-  <!-- React 程式碼開始 -->
-  <script type="text/babel">
-    const { useState, useEffect } = React;
+<header>
+    <div class="logo">五告滷</div>
+    <div class="cart">🛒 購物車 (<span id="cartCount">0</span>)</div>
+</header>
 
-    // --- 圖示元件 (取代原本需要安裝的 lucide-react，確保單檔就能運作) ---
-    const Search = ({size=24, strokeWidth=2, className=""}) => (<svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>);
-    const Menu = ({size=24, strokeWidth=2, className=""}) => (<svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>);
-    const ShoppingCart = ({size=24, strokeWidth=2, className=""}) => (<svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"/></svg>);
-    const ChevronLeft = ({size=24, className=""}) => (<svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>);
-    const ChevronRight = ({size=24, className=""}) => (<svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>);
-    const MapPin = ({size=24, className=""}) => (<svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>);
-    const Phone = ({size=24, className=""}) => (<svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>);
-    const Truck = ({size=24, className=""}) => (<svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>);
-    const Clock = ({size=24, className=""}) => (<svg className={className} width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>);
+<div class="hero">
+    <h1>五告滷，真正有夠滷！</h1>
+    <p>傳承多年的老滷汁，慢火細熬，把精華通通鎖進食材裡。</p>
+</div>
 
-    // === AI 圖片生成引擎 (即時生成) ===
-    const apiKey = ""; // 執行環境會自動注入
-
-    const generateImage = async (promptText) => {
-      const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-image-preview:generateContent?key=${apiKey}`;
-      const payload = {
-        contents: [{ parts: [{ text: promptText }] }],
-        generationConfig: { responseModalities: ['TEXT', 'IMAGE'] }
-      };
-
-      const delay = (ms) => new Promise(res => setTimeout(res, ms));
-      const retries = [1000, 2000, 4000, 8000, 16000];
-
-      for (let i = 0; i <= retries.length; i++) {
-        try {
-          const response = await fetch(url, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(payload)
-          });
-          
-          if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-          const data = await response.json();
-          
-          const base64Data = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.data;
-          const mimeType = data.candidates?.[0]?.content?.parts?.find(p => p.inlineData)?.inlineData?.mimeType || "image/png";
-
-          if (base64Data) {
-            return `data:${mimeType};base64,${base64Data}`;
-          }
-          throw new Error('No image data found in response');
-        } catch (error) {
-          console.error(`Attempt ${i + 1} failed:`, error);
-          if (i === retries.length) return { error: true };
-          await delay(retries[i]);
-        }
-      }
-    };
-
-    // --- 商品資料結構 ---
-    const PRODUCTS = [
-      { 
-        id: 1, 
-        name: "招牌入味茶葉蛋 (10入)", 
-        price: 180, 
-        desc: "傳承三十年老滷汁，精選在地茶葉慢火熬煮。帶殼完美裂紋，滷汁徹底入味，散發淡淡回甘茶香。", 
-        imgKey: "prod1" 
-      },
-      { 
-        id: 2, 
-        name: "招牌入味茶葉蛋 (20入禮盒裝)", 
-        price: 350, 
-        desc: "大份量精美包裝，送禮自用兩相宜。堅持新鮮食材與獨門秘製配方，讓您與親友分享極致美味。", 
-        imgKey: "prod2" 
-      }
-    ];
-
-    const LoadingSpinner = () => (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-[#EBE7E0] absolute inset-0 z-0">
-        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-[#7D241D]"></div>
-        <p className="text-[#7D241D] text-xs mt-3 font-bold tracking-widest animate-pulse">AI 圖片即時生成中...</p>
-        <p className="text-[#666] text-[10px] mt-1">正在為您滷製真實的茶葉蛋...</p>
-      </div>
-    );
-
-    const ErrorPlaceholder = () => (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-[#EBE7E0] absolute inset-0 z-0 border border-red-200">
-        <p className="text-[#7D241D] text-sm font-bold tracking-widest">圖片生成失敗</p>
-        <p className="text-gray-500 text-xs mt-1">請嘗試重新整理頁面</p>
-      </div>
-    );
-
-    const App = () => {
-      const [cartCount, setCartCount] = useState(0);
-      
-      const [heroImg, setHeroImg] = useState({ loading: true, src: null, error: false });
-      const [prod1Img, setProd1Img] = useState({ loading: true, src: null, error: false });
-      const [prod2Img, setProd2Img] = useState({ loading: true, src: null, error: false });
-
-      useEffect(() => {
-        if (typeof window === 'undefined') return;
-
-        generateImage("A close-up, ultra-realistic photograph of a traditional Taiwanese tea egg pot (茶葉蛋). Many whole eggs with deeply cracked, dark brown shells are simmering in a dark, rich soy sauce and tea broth. Spices like star anise are visible in the dark liquid. Authentic Taiwan street food, rustic, dark and moody lighting.")
-          .then(res => setHeroImg({ loading: false, src: res?.error ? null : res, error: !!res?.error }));
-        
-        generateImage("A macro, photorealistic shot of two traditional Taiwanese tea eggs (茶葉蛋) in a small ceramic bowl filled with dark brown marinating broth. The eggs are WHOLE with their shells on. The shells are dark brown with prominent, intricate spiderweb cracks stained by the broth. Authentic, rustic Taiwanese street food style.")
-          .then(res => setProd1Img({ loading: false, src: res?.error ? null : res, error: !!res?.error }));
-        
-        generateImage("Photorealistic image of a pile of authentic Taiwanese tea eggs (茶葉蛋). The eggs are whole, unpeeled, and have dark brown, heavily cracked shells stained with tea and soy sauce. They look deeply marinated. Warm lighting, rustic local food aesthetic.")
-          .then(res => setProd2Img({ loading: false, src: res?.error ? null : res, error: !!res?.error }));
-      }, []);
-
-      const handleAddToCart = () => {
-        setCartCount(prev => prev + 1);
-      };
-
-      return (
-        <div className="min-h-screen bg-[#F5F3F0] text-[#333333] font-sans selection:bg-[#7D241D] selection:text-white">
-          
-          <header className="sticky top-0 z-50 bg-[#7D241D] text-white px-4 py-3 flex justify-between items-center shadow-md">
-            <button className="p-2 hover:bg-white/10 rounded-full transition">
-              <Search size={22} strokeWidth={1.5} />
-            </button>
-            
-            <div className="flex flex-col items-center justify-center font-serif cursor-pointer" onClick={() => window.scrollTo(0,0)}>
-              <h1 className="text-2xl font-bold tracking-widest">五告滷</h1>
-              <span className="text-[10px] tracking-[0.2em] opacity-80 mt-0.5">WU GAO LU</span>
+<div class="products">
+    <h2>🔥 經典熱銷商品</h2>
+    <div class="grid">
+        <div class="card">
+            <div class="img-box egg">🥚</div>
+            <div class="info">
+                <div class="title">招牌秘製茶葉蛋</div>
+                <div class="desc">嚴選頂級紅玉紅茶與中藥材熬煮72小時，蛋白Q彈、蛋黃綿密，茶香與滷香完美結合。</div>
+                <div class="price">NT$ 20 / 顆</div>
+                <button class="btn" onclick="addCart('招牌秘製茶葉蛋')">加入購物車</button>
             </div>
-
-            <div className="flex items-center gap-2">
-              <button className="p-2 hover:bg-white/10 rounded-full transition relative">
-                <ShoppingCart size={22} strokeWidth={1.5} />
-                {cartCount > 0 && (
-                  <span className="absolute top-0 right-0 bg-[#E8A856] text-[#7D241D] text-[10px] font-bold w-4 h-4 flex items-center justify-center rounded-full">
-                    {cartCount}
-                  </span>
-                )}
-              </button>
-              <button className="p-2 hover:bg-white/10 rounded-full transition">
-                <Menu size={24} strokeWidth={1.5} />
-              </button>
-            </div>
-          </header>
-
-          <main className="max-w-4xl mx-auto bg-white/40 shadow-sm min-h-screen pb-12">
-            
-            <section className="relative w-full aspect-[3/4] md:aspect-[16/9] overflow-hidden bg-[#EBE7E0]">
-              {heroImg.loading && <LoadingSpinner />}
-              {heroImg.error && <ErrorPlaceholder />}
-              {heroImg.src && (
-                <img 
-                  src={heroImg.src} 
-                  alt="三十年老店 五告滷" 
-                  className="w-full h-full object-cover object-center absolute inset-0 z-0 animate-fade-in"
-                />
-              )}
-              <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/20 to-transparent flex flex-col justify-end p-8 text-center pointer-events-none z-10">
-                <span className="text-[#E8A856] font-bold tracking-[0.3em] mb-2 text-sm drop-shadow-md">
-                  飄香三十年的家鄉味
-                </span>
-                <h2 className="text-white text-3xl md:text-5xl font-serif font-bold tracking-widest mb-3 drop-shadow-lg">
-                  傳承古法，入味香醇
-                </h2>
-                <p className="text-gray-200 text-sm md:text-base tracking-widest drop-shadow-md">
-                  堅持新鮮食材與獨門秘製配方，讓你一口接一口。
-                </p>
-              </div>
-            </section>
-
-            <section className="bg-[#6B1F19] text-white flex justify-around items-center text-sm font-medium border-b-4 border-[#521612]">
-              <a href="#" className="flex-1 py-4 text-center hover:bg-white/10 transition border-r border-white/20">即刻下單</a>
-              <a href="#" className="flex-1 py-4 text-center hover:bg-white/10 transition border-r border-white/20">會員優惠</a>
-              <a href="#" className="flex-1 py-4 text-center hover:bg-white/10 transition">訂單查詢</a>
-            </section>
-
-            <section className="pt-16 pb-12 px-4 relative bg-[#F5F3F0] bg-opacity-80">
-              <div className="text-center mb-10">
-                <h2 className="text-3xl font-serif font-bold text-[#333] tracking-[0.2em] mb-2">餐點系列</h2>
-                <p className="text-sm text-[#7D241D] font-bold tracking-widest">在地美味 老饕推薦</p>
-              </div>
-
-              <div className="relative max-w-2xl mx-auto flex flex-col items-center">
-                <div className="hidden md:block absolute left-0 top-[35%] -translate-y-1/2 w-10 h-10"></div>
-                <div className="hidden md:block absolute right-0 top-[35%] -translate-y-1/2 w-10 h-10"></div>
-
-                <div className="w-64 h-64 md:w-80 md:h-80 rounded-full overflow-hidden shadow-2xl mb-8 border-8 border-white group relative cursor-pointer bg-[#EBE7E0]">
-                  {prod1Img.loading && <LoadingSpinner />}
-                  {prod1Img.error && <ErrorPlaceholder />}
-                  {prod1Img.src && (
-                    <img 
-                      src={prod1Img.src} 
-                      alt="入味茶葉蛋" 
-                      className="w-full h-full object-cover group-hover:scale-105 transition duration-700 absolute inset-0 z-0 animate-fade-in"
-                    />
-                  )}
-                  <div className="absolute inset-0 bg-black/20 opacity-0 group-hover:opacity-100 transition flex items-center justify-center z-10" onClick={handleAddToCart}>
-                    <span className="bg-[#7D241D] text-white px-6 py-2 rounded-full font-bold shadow-lg flex items-center gap-2">
-                      <ShoppingCart size={18} /> 快速加入
-                    </span>
-                  </div>
-                </div>
-
-                <h3 className="text-2xl font-bold mb-3 text-[#333]">招牌入味茶葉蛋 (10入)</h3>
-                <p className="text-[#666] text-center max-w-md leading-relaxed mb-6 px-4">
-                  三十年老滷汁淬鍊，選用特級優質鮮蛋與精選茶葉慢火熬煮。茶香與中藥完美融合，滷汁浸透每一絲裂紋。
-                </p>
-                
-                <div className="flex items-center gap-6">
-                  <span className="text-2xl font-black text-[#7D241D]">NT$ 150</span>
-                  <button 
-                    onClick={handleAddToCart}
-                    className="bg-[#7D241D] text-white px-8 py-3 rounded-sm font-bold tracking-widest hover:bg-[#6B1F19] transition shadow-md flex items-center gap-2"
-                  >
-                    <ShoppingCart size={18} /> 放入購物車
-                  </button>
-                </div>
-              </div>
-            </section>
-
-            <div className="w-full h-8 bg-[#E8E4D9]"></div>
-
-            <section className="py-12 px-4 md:px-8 bg-white">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {PRODUCTS.map(product => {
-                  const imgState = product.imgKey === 'prod1' ? prod1Img : prod2Img;
-                  
-                  return (
-                    <article key={product.id} className="bg-[#FDFCFB] border border-[#E8E4D9] rounded-sm overflow-hidden flex flex-col group shadow-sm hover:shadow-md transition">
-                      <div className="aspect-[4/3] overflow-hidden relative cursor-pointer bg-[#EBE7E0]" onClick={handleAddToCart}>
-                        {imgState.loading && <LoadingSpinner />}
-                        {imgState.error && <ErrorPlaceholder />}
-                        {imgState.src && (
-                          <img 
-                            src={imgState.src} 
-                            alt={product.name} 
-                            className="w-full h-full object-cover group-hover:scale-105 transition duration-500 absolute inset-0 z-0 animate-fade-in"
-                          />
-                        )}
-                        <button className="absolute bottom-3 right-3 bg-[#7D241D] text-white p-3 rounded-full shadow-lg hover:bg-[#521612] transition transform translate-y-2 opacity-0 group-hover:opacity-100 group-hover:translate-y-0 z-10">
-                          <ShoppingCart size={20} />
-                        </button>
-                      </div>
-                      <div className="p-6 flex flex-col flex-1">
-                        <h3 className="text-lg font-bold text-[#333] mb-2">{product.name}</h3>
-                        <p className="text-sm text-[#666] leading-relaxed mb-6 flex-1 text-justify">
-                          {product.desc}
-                        </p>
-                        <div className="flex justify-between items-center mt-auto pt-4 border-t border-[#E8E4D9]">
-                          <span className="text-xl font-black text-[#7D241D]">NT$ {product.price}</span>
-                          <button 
-                            onClick={handleAddToCart}
-                            className="text-sm font-bold text-[#7D241D] hover:text-[#521612] transition"
-                          >
-                            加入購物車 &rarr;
-                          </button>
-                        </div>
-                      </div>
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
-
-            <section className="py-20 px-6 relative bg-[#EBE7E0] overflow-hidden text-center">
-               <div className="absolute top-0 left-0 w-full h-full opacity-10" style={{ backgroundImage: 'url("data:image/svg+xml,%3Csvg width=\'20\' height=\'20\' viewBox=\'0 0 20 20\' xmlns=\'http://www.w3.org/2000/svg\'%3E%3Cg fill=\'%23000000\' fill-opacity=\'1\' fill-rule=\'evenodd\'%3E%3Ccircle cx=\'3\' cy=\'3\' r=\'3\'/%3E%3Ccircle cx=\'13\' cy=\'13\' r=\'3\'/%3E%3C/g%3E%3C/svg%3E")' }}></div>
-               
-               <h2 className="text-3xl font-serif font-bold text-[#333] tracking-[0.2em] mb-8 relative z-10">品牌故事</h2>
-               <p className="max-w-2xl mx-auto text-[#555] leading-[2.5] tracking-widest relative z-10 text-justify text-sm md:text-base">
-                 「五告滷」起源於對傳統家鄉味的思念。我們深信，好的滷味沒有捷徑，只有時間與火候的累積。嚴選在地新鮮食材，搭配傳承三十年的獨門中藥配方，堅持每日低溫慢火熬煮。<br/><br/>
-                 每一口，都能吃到我們的用心與堅持。無論是配飯、下酒，或是深夜的解嘴饞，五告滷都是您最對味的選擇。
-               </p>
-            </section>
-
-          </main>
-
-          <footer className="bg-[#2A2A2A] text-[#EBE7E0] pt-16 pb-8 px-6 font-sans border-t-8 border-[#7D241D]">
-            <div className="max-w-4xl mx-auto">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
-                <div className="lg:col-span-2">
-                  <h3 className="text-2xl font-serif font-bold tracking-widest mb-6 text-white">五告滷</h3>
-                  <ul className="space-y-4 text-sm opacity-90 tracking-wide">
-                    <li className="flex items-start gap-3">
-                      <MapPin size={18} className="shrink-0 mt-0.5 text-[#E8A856]" />
-                      <span>台北市信義區美食大道123號</span>
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <Phone size={18} className="text-[#E8A856]" />
-                      <span>0800-555-666</span>
-                    </li>
-                    <li className="flex items-center gap-3">
-                      <Clock size={18} className="text-[#E8A856]" />
-                      <span>線上客服：週一至週五 10:00-18:00</span>
-                    </li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-bold mb-6 text-white">購物服務</h4>
-                  <ul className="space-y-3 text-sm opacity-80">
-                    <li><a href="#" className="hover:text-[#E8A856] transition">購物須知</a></li>
-                    <li><a href="#" className="hover:text-[#E8A856] transition">退換貨政策</a></li>
-                    <li><a href="#" className="hover:text-[#E8A856] transition">隱私權條款</a></li>
-                  </ul>
-                </div>
-
-                <div>
-                  <h4 className="text-lg font-bold mb-6 text-white">配送與支付</h4>
-                  <div className="bg-[#333] p-3 rounded-sm border border-[#444] mb-4">
-                    <p className="text-xs text-[#E8A856] font-bold mb-1 flex items-center gap-2">
-                      <Truck size={14} /> 全台低溫宅配
-                    </p>
-                    <p className="text-xs opacity-90">單筆滿 NT$1,500 即享免運優惠</p>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                     <div className="bg-white px-2 py-1 text-[10px] font-black text-blue-800 rounded-sm">VISA</div>
-                     <div className="bg-white px-2 py-1 text-[10px] font-black text-red-600 rounded-sm">MasterCard</div>
-                     <div className="bg-white px-2 py-1 text-[10px] font-black text-green-600 rounded-sm">LINE Pay</div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="border-t border-[#444] pt-8 flex flex-col md:flex-row justify-between items-center text-xs opacity-50 tracking-widest gap-4">
-                <p>Copyright © 2026 五告滷 WU GAO LU. All Rights Reserved.</p>
-              </div>
-            </div>
-          </footer>
-
-          {cartCount > 0 && (
-            <div className="fixed bottom-0 left-0 w-full p-4 bg-white/95 backdrop-blur-md border-t border-gray-200 shadow-[0_-10px_20px_rgba(0,0,0,0.1)] z-50 transform transition-transform animate-slide-up">
-              <div className="max-w-4xl mx-auto flex justify-between items-center">
-                <div className="text-[#333]">
-                  <span className="text-xs font-bold text-gray-500 block mb-1">購物車 ({cartCount} 件)</span>
-                  <span className="text-xl font-black text-[#7D241D]">結帳去</span>
-                </div>
-                <button className="bg-[#7D241D] text-white px-8 py-3 rounded-sm font-bold shadow-md hover:bg-[#6B1F19] transition">
-                  前往結帳 &rarr;
-                </button>
-              </div>
-            </div>
-          )}
         </div>
-      );
-    };
+        <div class="card">
+            <div class="img-box beef">🥩</div>
+            <div class="info">
+                <div class="title">極品半筋半肉滷牛肉</div>
+                <div class="desc">嚴選澳洲頂級牛腱心，搭配傳家老滷慢火燉煮。肉質軟嫩多汁，牛筋入口即化。</div>
+                <div class="price">NT$ 250 / 份</div>
+                <button class="btn" onclick="addCart('極品半筋半肉滷牛肉')">加入購物車</button>
+            </div>
+        </div>
+    </div>
+</div>
 
-    const root = ReactDOM.createRoot(document.getElementById('root'));
-    root.render(<App />);
-  </script>
+<footer>
+    <p>&copy; 2026 五告滷 Wu-Gao-Lu. All rights reserved.</p>
+</footer>
+
+<script>
+    let count = 0;
+    function addCart(item) {
+        count++;
+        document.getElementById('cartCount').innerText = count;
+        alert('已將「' + item + '」加入購物車！\n\n(這是預覽網站，尚未串接真實金流喔！)');
+    }
+</script>
+
 </body>
 </html>
